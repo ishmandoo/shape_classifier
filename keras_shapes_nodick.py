@@ -4,9 +4,27 @@ from skimage.draw import circle, polygon
 import random
 from subprocess import call
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout, Flatten, Convolution2D, MaxPooling2D
+from keras.layers import Dense, Activation, Dropout, Flatten, Convolution2D, MaxPooling2D, ZeroPadding2D
 from keras.optimizers import SGD
+from scipy.misc import imsave
+from keras import backend as K
 
+
+def deprocess_image(x):
+    # normalize tensor: center on 0., ensure std is 0.1
+    x -= x.mean()
+    x /= (x.std() + 1e-5)
+    x *= 0.1
+
+    # clip to [0, 1]
+    x += 0.5
+    x = np.clip(x, 0, 1)
+
+    # convert to RGB array
+    x *= 255
+    #x = x.transpose((1, 2, 0)) #transposition for Theano
+    x = np.clip(x, 0, 255).astype('uint8')
+    return x
 
 def drawCircle(frame, x, y, r):
     rr, cc = circle(x, y, r)
@@ -37,13 +55,13 @@ def generateBatch(n):
         rand = random.randint(0,2)
         frame = np.zeros((100, 100, 3) , dtype=np.uint8)
         if rand == 0:
-            batch.append(drawCircle(frame, random.randint(30,70),random.randint(30,70),10))
+            batch.append(drawCircle(frame, random.randint(30,70),random.randint(30,70),random.randint(5,10)))
             answers.append([1,0,0])
         if rand == 1:
-            batch.append(drawSquare(frame, random.randint(30,70),random.randint(30,70),10))
+            batch.append(drawSquare(frame, random.randint(30,70),random.randint(30,70),random.randint(5,10)))
             answers.append([0,1,0])
         if rand == 2:
-            batch.append(drawTriangle(frame, random.randint(30,70),random.randint(30,70),10))
+            batch.append(drawTriangle(frame, random.randint(30,70),random.randint(30,70),random.randint(5,10)))
             answers.append([0,0,1])
     return np.array(batch), np.array(answers)
 
@@ -53,7 +71,14 @@ def generateBatch(n):
 model = Sequential()
 # input: 100x100 images with 3 channels -> (3, 100, 100) tensors.
 # this applies 32 convolution filters of size 3x3 each.
-model.add(Convolution2D(8, 3, 3, border_mode='valid', input_shape=(100, 100,3), dim_ordering="tf"))
+img_width = 100
+img_height = 100
+model.add(ZeroPadding2D((1, 1), input_shape=(img_width, img_height,3), dim_ordering="tf"))
+first_layer = model.layers[-1]
+# this is a placeholder tensor that will contain our generated images
+input_img = first_layer.input
+
+model.add(Convolution2D(8, 3, 3, border_mode='valid',       input_shape=(100, 100,3), dim_ordering="tf"))
 model.add(Activation('relu'))
 model.add(Convolution2D(8, 3, 3, dim_ordering="tf"))
 model.add(Activation('relu'))
@@ -76,10 +101,10 @@ model.add(Dropout(0.5))
 model.add(Dense(3))
 model.add(Activation('softmax'))
 
-sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
 model.compile(loss='categorical_crossentropy', optimizer=sgd)
 
-X_train, Y_train = generateBatch(20000)
+X_train, Y_train = generateBatch(10000)
 print np.shape(X_train)
 print np.shape(Y_train)
 model.fit(X_train, Y_train, batch_size=32, nb_epoch=1)
@@ -87,3 +112,39 @@ model.fit(X_train, Y_train, batch_size=32, nb_epoch=1)
 X_eval, Y_eval = generateBatch(10)
 print model.predict_classes(X_eval)
 print Y_eval
+
+layer_dict = dict([(layer.name, layer) for layer in model.layers])
+print layer_dict
+
+
+
+layer_name = 'convolution2d_2'
+filter_index = 0  # can be any integer from 0 to 511, as there are 512 filters in that layer
+
+# build a loss function that maximizes the activation
+# of the nth filter of the layer considered
+layer_output = layer_dict[layer_name].output
+print layer_output[:,:,:,0]
+loss = K.mean(layer_output[:, :, :, filter_index])
+print loss
+# compute the gradient of the input picture wrt this loss
+print input_img
+print  K.gradients(loss, input_img)
+grads = K.gradients(loss, input_img)[0]
+
+# normalization trick: we normalize the gradient
+grads /= (K.sqrt(K.mean(K.square(grads))) + 1e-5)
+print grads
+# this function returns the loss and grads given the input picture
+iterate = K.function([input_img], [loss, grads])
+
+input_img_data = np.random.random((1, img_width, img_height, 3)) * 20 + 128.
+# run gradient ascent for 20 steps
+step = 1.
+for i in range(20):
+    loss_value, grads_value = iterate([input_img_data])
+    input_img_data += grads_value * step
+
+img = input_img_data[0]
+img = deprocess_image(img)
+imsave('%s_filter_%d.png' % (layer_name, filter_index), img)
