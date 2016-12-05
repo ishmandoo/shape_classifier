@@ -101,7 +101,7 @@ model.add(Dropout(0.5))
 model.add(Dense(3))
 model.add(Activation('softmax'))
 
-sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
+sgd = SGD(lr=0.001, decay=1e-7, momentum=0.9, nesterov=True)
 model.compile(loss='categorical_crossentropy', optimizer=sgd)
 
 X_train, Y_train = generateBatch(10000)
