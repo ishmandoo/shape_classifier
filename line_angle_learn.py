@@ -67,7 +67,7 @@ def generateBatch(n):
 loadfileflag = True
 import os
 
-weightfile = 'weights_line.h5'
+weightfile = 'ben_weights_rotation.h5'
 if loadfileflag and os.path.isfile(weightfile):
     print("loaded model")
     model = load_model(weightfile)
@@ -115,5 +115,3 @@ print(model.predict_proba(X_eval) - Y_eval)
 
 
 print(Y_eval)
-
-
