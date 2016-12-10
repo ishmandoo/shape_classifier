@@ -84,12 +84,15 @@ else:
     sgd = SGD(lr=0.05, decay=0, momentum=0, nesterov=False)
     model.compile(loss='mean_absolute_error', optimizer=sgd)
 
-for i in range(1):
+for i in range(50):
     X_train, Y_train = generateBatch(10000)
-    model.fit(X_train, Y_train, batch_size=32, nb_epoch=1)
+    model.fit(X_train, Y_train, batch_size=1000, nb_epoch=1)
     if saveFileFlag:
         model.save(weightFile)
 
 X_eval, Y_eval = generateBatch(10)
-print model.predict(X_eval)
+predictions = model.predict(X_eval)
+
 print Y_eval
+print predictions
+print Y_eval-predictions

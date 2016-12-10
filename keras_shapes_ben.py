@@ -90,5 +90,8 @@ X_train, Y_train, answers = generateBatch(10000)
 model.fit(X_train, Y_train, batch_size=32, nb_epoch=1)
 
 X_eval, Y_eval, answers = generateBatch(10)
-print model.predict_classes(X_eval)
+predictions =  model.predict_classes(X_eval)
+
 print answers
+print predictions
+print answers-predictions
