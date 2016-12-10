@@ -55,7 +55,7 @@ def generateBatch(n):
 loadFileFlag = True
 saveFileFlag = True
 
-weightFile = 'weights_ben_rotation.h5'
+weightFile = 'weights_rotation_dcnn.h5'
 if loadFileFlag and os.path.isfile(weightFile):
     print("loaded model")
     model = load_model(weightFile)
@@ -67,16 +67,23 @@ else:
 
     model.add(Convolution2D(8, 3, 3, border_mode='valid', input_shape=(100, 100,3), dim_ordering="tf"))
     model.add(Activation('relu'))
-    model.add(Convolution2D(8, 3, 3, dim_ordering="tf"))
+    model.add(Convolution2D(32, 3, 3))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    model.add(Convolution2D(64, 3, 3, border_mode='valid'))
+    model.add(Activation('relu'))
+    model.add(Convolution2D(64, 3, 3))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
     model.add(Flatten())
-
-    model.add(Dense(50))
+    # Note: Keras does automatic shape inference.
+    model.add(Dense(256))
     model.add(Activation('relu'))
-    #model.add(Dropout(0.5))
+    model.add(Dropout(0.5))
 
     model.add(Dense(2))
     #model.add(Activation('linear'))
@@ -86,10 +93,13 @@ else:
 
 for i in range(50):
     X_train, Y_train = generateBatch(10000)
-    model.fit(X_train, Y_train, batch_size=32, nb_epoch=1)
+    model.fit(X_train, Y_train, batch_size=1000, nb_epoch=1)
     if saveFileFlag:
         model.save(weightFile)
 
 X_eval, Y_eval = generateBatch(10)
-print model.predict(X_eval)
+predictions = model.predict(X_eval)
+
 print Y_eval
+print predictions
+print Y_eval-predictions
