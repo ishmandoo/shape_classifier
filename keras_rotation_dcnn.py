@@ -65,7 +65,7 @@ else:
     img_width = 100
     img_height = 100
 
-    model.add(Convolution2D(8, 3, 3, border_mode='valid', input_shape=(100, 100,3), dim_ordering="tf"))
+    model.add(Convolution2D(32, 3, 3, border_mode='valid', input_shape=(100, 100,3), dim_ordering="tf"))
     model.add(Activation('relu'))
     model.add(Convolution2D(32, 3, 3))
     model.add(Activation('relu'))
@@ -88,18 +88,18 @@ else:
     model.add(Dense(2))
     #model.add(Activation('linear'))
 
-    sgd = SGD(lr=0.05, decay=0, momentum=0, nesterov=False)
+    sgd = SGD(lr=0.1, decay=0, momentum=0, nesterov=False)
     model.compile(loss='mean_absolute_error', optimizer=sgd)
 
-for i in range(50):
+for i in range(10):
     X_train, Y_train = generateBatch(10000)
-    model.fit(X_train, Y_train, batch_size=1000, nb_epoch=1)
+    model.fit(X_train, Y_train, batch_size=200, nb_epoch=1)
     if saveFileFlag:
         model.save(weightFile)
 
-X_eval, Y_eval = generateBatch(10)
-predictions = model.predict(X_eval)
+    X_eval, Y_eval = generateBatch(10)
+    predictions = model.predict(X_eval)
 
-print Y_eval
-print predictions
-print Y_eval-predictions
+    print Y_eval
+    print predictions
+    print Y_eval-predictions
