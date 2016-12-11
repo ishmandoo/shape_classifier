@@ -44,7 +44,7 @@ def generateBatch(n):
     batch = []
     answers = []
     for i in range(n):
-        angle = random.random() * np.pi
+        angle = random.random() * np.pi/2. + np.pi/4 # Restrict range the make easier
         frame = np.zeros((100, 100, 3) , dtype=np.uint8)
 
         batch.append(drawAALine(frame, random.randint(30,70),random.randint(30,70),10, angle))
