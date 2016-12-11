@@ -10,8 +10,7 @@ from scipy.misc import imsave
 from keras import backend as K
 import os
 
-def drawCircle(x, y, r):
-    frame = np.zeros((100, 100, 3) , dtype=np.uint8)
+def drawCircle(frame, x, y, r):
     rr, cc = circle(x, y, r)
     frame[rr, cc] = 255
     return frame
@@ -46,9 +45,13 @@ def generateBatch(n):
     for i in range(n):
         angle = random.random() * np.pi/2. + np.pi/4 # Restrict range the make easier
         frame = np.zeros((100, 100, 3) , dtype=np.uint8)
-
-        batch.append(drawAALine(frame, random.randint(30,70),random.randint(30,70),10, angle))
-        answers.append([np.cos(angle),np.sin(angle)])
+        frame = drawAALine(frame, random.randint(30,70),random.randint(30,70), 20, angle)
+        x = random.randint(30,70)
+        y = random.randint(30,70)
+        size = random.randint(2,5)
+        frame = drawCircle(frame, x ,y ,size)
+        batch.append(frame)
+        answers.append([angle])
     return np.array(batch), np.array(answers)
 
 
@@ -85,15 +88,15 @@ else:
     model.add(Activation('relu'))
     model.add(Dropout(0.5))
 
-    model.add(Dense(2))
+    model.add(Dense(1))
     #model.add(Activation('linear'))
 
     sgd = SGD(lr=0.05, decay=0, momentum=0, nesterov=False)
     model.compile(loss='mean_absolute_error', optimizer=sgd)
 
 for i in range(50):
-    X_train, Y_train = generateBatch(10000)
-    model.fit(X_train, Y_train, batch_size=1000, nb_epoch=1)
+    X_train, Y_train = generateBatch(1000)
+    model.fit(X_train, Y_train, batch_size=10, nb_epoch=1)
     if saveFileFlag:
         model.save(weightFile)
 
