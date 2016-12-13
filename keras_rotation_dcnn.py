@@ -44,7 +44,7 @@ def generateBatch(n):
     batch = []
     answers = []
     for i in range(n):
-        angle = random.random() * np.pi/2. + np.pi/4 # Restrict range the make easier
+        angle = random.random() * np.pi/2. - np.pi/4 # Restrict range the make easier
         frame = np.zeros((100, 100, 3) , dtype=np.uint8)
         frame = drawAALine(frame, random.randint(30,70),random.randint(30,70), 20, angle)
         x = random.randint(30,70)
@@ -101,7 +101,8 @@ else:
     sgd = SGD(lr=0.005, decay=0, momentum=0, nesterov=False)
     model.compile(loss='mean_absolute_error', optimizer=sgd)
 
-for i in range(10):
+#for i in range(10):
+while True:
     X_train, Y_train = generateBatch(10000)
     model.fit(X_train, Y_train, batch_size=200, nb_epoch=1)
     if saveFileFlag:
