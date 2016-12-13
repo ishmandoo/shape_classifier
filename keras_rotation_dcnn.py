@@ -91,18 +91,12 @@ else:
     model.add(Dense(1))
     #model.add(Activation('linear'))
 
-    sgd = SGD(lr=0.1, decay=0, momentum=0, nesterov=False)
+    sgd = SGD(lr=0.005, decay=0, momentum=0, nesterov=False)
     model.compile(loss='mean_absolute_error', optimizer=sgd)
 
-<<<<<<< HEAD
 for i in range(10):
     X_train, Y_train = generateBatch(10000)
     model.fit(X_train, Y_train, batch_size=200, nb_epoch=1)
-=======
-for i in range(50):
-    X_train, Y_train = generateBatch(1000)
-    model.fit(X_train, Y_train, batch_size=10, nb_epoch=1)
->>>>>>> a8267049dacc28bdfe2eb09f93b1c30a630a074c
     if saveFileFlag:
         model.save(weightFile)
 
@@ -111,4 +105,4 @@ for i in range(50):
 
     print Y_eval
     print predictions
-    print Y_eval-predictions
+    print ((Y_eval-predictions) / 3.141592) * 180
