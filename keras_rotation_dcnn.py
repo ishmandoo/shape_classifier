@@ -8,6 +8,7 @@ from keras.layers import Dense, Activation, Dropout, Flatten, Convolution2D, Max
 from keras.optimizers import SGD
 from scipy.misc import imsave
 from keras import backend as K
+from PIL import Image
 import os
 
 def drawCircle(frame, x, y, r):
@@ -34,7 +35,7 @@ def drawTriangle(x, y, b):
 
 def drawAALine(frame, x, y, l, theta):
     x1 = int(x + l * np.cos(theta))
-    y1 = int(x + l * np.sin(theta))
+    y1 = int(y + l * np.sin(theta))
     rr, cc, val = line_aa(x, y, x1 , y1)
     frame[rr, cc,0] = val*255
     return frame
@@ -53,6 +54,12 @@ def generateBatch(n):
         batch.append(frame)
         answers.append([angle])
     return np.array(batch), np.array(answers)
+
+#sample, answer = generateBatch(1)
+#print (answer / 3.14) * 180
+#im = Image.fromarray(sample[0])
+#im.save("test.png")
+
 
 
 loadFileFlag = True
