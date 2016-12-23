@@ -40,12 +40,14 @@ def drawAALine(frame, x, y, l, theta):
     frame[rr, cc,0] = val*255
     return frame
 
+
 def generateBatch(n):
     batch = []
     answers = []
     for i in range(n):
         angle = random.random() * np.pi/2. - np.pi/4 # Restrict range the make easier
-        frame = np.zeros((100, 100, 3) , dtype=np.uint8)
+        #frame = np.zeros((100, 100, 3) , dtype=np.uint8)
+        frame = np.array(np.random.random((100, 100, 3)) * 80 , dtype=np.uint8)
         frame = drawAALine(frame, random.randint(30,70),random.randint(30,70), 20, angle)
         x = random.randint(30,70)
         y = random.randint(30,70)
@@ -59,7 +61,6 @@ def generateBatch(n):
 #print (answer / 3.14) * 180
 #im = Image.fromarray(sample[0])
 #im.save("test.png")
-
 
 
 loadFileFlag = True
